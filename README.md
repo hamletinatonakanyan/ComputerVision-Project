@@ -24,6 +24,7 @@ Steps:
 Data file system should be in the following hierarchy:
 
 [folder name]
+
     |-train
         |-[class 0]
         |-[class 1]
