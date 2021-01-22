@@ -23,8 +23,8 @@ def training_process(name_of_model, optimization, learning_rate, epochs_number, 
     print(f'device: {device}')
 
     # path of the train and test datasets
-    train_folder_path = 'color_data/train'
-    test_folder_path = 'color_data/test'
+    train_folder_path = 'brand_data/train'
+    test_folder_path = 'brand_data/test'
 
     # get the amount of samples of train and test datasets
     train_count, test_count = clf.get_count_datasets(train_folder_path, test_folder_path)
