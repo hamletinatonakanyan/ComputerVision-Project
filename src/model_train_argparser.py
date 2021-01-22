@@ -22,7 +22,7 @@ def main_function():
                         help='The learning rate for the optimizer.')
 
     parser.add_argument('-e', '--epochs_number', type=int,
-                        choices=(5, 10, 20, 50, 60, 80, 100),
+                        choices=(5, 10, 20, 30, 40, 50, 60, 80, 100),
                         metavar='', required=True,
                         help='Number of epochs for iterating the model.')
 
