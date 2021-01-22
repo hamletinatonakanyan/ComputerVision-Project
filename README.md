@@ -44,8 +44,11 @@ Data file system should be in the following hierarchy:
 3. Python files:
    a) "data_cleaning_exploring.py" --> unzipping inputted image folder, explore CSV file through pandas Dataframe, 
       matplotlib and seaborn plotting techniques, make folders hierarchy based on different features
+      
    b) "Image_classification_functions.py" --> functions for model building
+   
    c) "Image_classification_train.py" --> combining all functions in one training process to train the model
+   
    d) "model_train_argparser.py" --> make ArgumentParser and pass parameters for training as arguments.
    
 
