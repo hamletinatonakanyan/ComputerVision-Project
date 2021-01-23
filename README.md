@@ -10,8 +10,8 @@ Contains:
 1. data folder with separate folders of car images by IDs.
 2. CSV file with information about different cars, including it's IDs.
 
-Brand, color, year_data:
-Contain images with appropriate subfolders for further model building
+Link for unstructured data with CSV file and image folders:
+https://drive.google.com/drive/folders/1MxT7lND3_KUmRuZmFYv0VCv80bLpxBMj?usp=sharing
 _________________________________________________________________
 Steps:
 
