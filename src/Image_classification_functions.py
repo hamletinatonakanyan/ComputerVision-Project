@@ -95,7 +95,7 @@ class CNN(nn.Module):
         # after filters and max pooling input shape will be (3, 96, 12, 12)
         self.fc1 = nn.Linear(in_features=96 * 12 * 12, out_features=1024)
         self.bn3 = nn.BatchNorm1d(1024)
-        self.out = nn.Linear(in_features=1024, out_features=num_classes)
+        self.out = nn.Linear(in_features=1024, out_features=self.num_classes)
 
     def forward(self, t):
         t = F.relu(self.conv1(t))
@@ -120,6 +120,21 @@ class CNN(nn.Module):
         t = self.out(t)
 
         return t
+
+
+# function for freezing layers in transfer learning models
+def freeze_until(model, layer_name):
+    """
+    :param model: model for classification
+    :param layer_name: layer name-string
+    :return: stops the counting of the gradients besides the inputted layer
+    """
+    requires_grad = False
+    for name, params in model.named_parameters():
+        if layer_name in name:
+            requires_grad = True
+
+        params.requires_grad = requires_grad
 
 
 # function for model choosing
@@ -175,16 +190,6 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
         exit()
 
     return chosen_model, input_size
-
-
-# function for freezing layers in transfer learning models
-def freeze_until(model, layer_name):
-    requires_grad = False
-    for name, params in model.named_parameters():
-        if layer_name in name:
-            requires_grad = True
-
-        params.requires_grad = requires_grad
 
 
 # get transformed dataloader
