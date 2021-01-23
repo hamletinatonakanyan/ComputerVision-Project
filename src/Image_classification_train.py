@@ -36,6 +36,10 @@ def training_process(name_of_model, optimization, learning_rate, epochs_number, 
     # chose the model
     clf_model, input_size = clf.initialize_model(name_of_model, classes_amount, pretrained, freeze_layers)
 
+    # get total parameters requiring grad during training process
+    total_params_grad = sum(params.numel() for params in clf_model.parameters() if params.requires_grad)
+    print(f'Total parameters requiring grad: {total_params_grad}')
+
     # get train and test dataloaders
     dataloader = clf.get_transformed_dataloader(train_folder_path, test_folder_path, input_size)
 
