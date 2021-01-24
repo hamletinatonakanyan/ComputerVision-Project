@@ -48,15 +48,21 @@ def training_process(name_of_model, optimization, learning_rate, epochs_number, 
 
     # set optimizer
     if optimization == 'adam':
-        optimization = optim.Adam(clf_model.parameters(), lr=learning_rate)
+        optimization = optim.Adam(filter(lambda gr: gr.requires_grad, clf_model.parameters()), lr=learning_rate)
     elif optimization == 'sgd':
-        optimization = optim.SGD(clf_model.parameters(), lr=learning_rate, momentum=0.9)
+        optimization = torch.optim.SGD(filter(lambda gr: gr.requires_grad, clf_model.parameters()),
+                                       lr=learning_rate, momentum=0.9)
+
+    # set learning_rate scheduler
+    exp_lr_scheduler = optim.lr_scheduler.StepLR(optimization, step_size=7, gamma=0.1)
 
     criterion = nn.CrossEntropyLoss()
 
     # train the model
-    train_loss, test_loss, train_acc, test_acc = clf.model_train(clf_model, optimization, criterion, dataloader,
-                                                                 device, train_count, test_count,
+    train_loss, test_loss, train_acc, test_acc = clf.model_train(clf_model, optimization,
+                                                                 exp_lr_scheduler, criterion,
+                                                                 dataloader, device,
+                                                                 train_count, test_count,
                                                                  num_epochs=epochs_number)
 
     """ ANALYZING, PLOTTING THE RESULTS"""

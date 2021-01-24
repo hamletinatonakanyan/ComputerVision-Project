@@ -3,6 +3,7 @@
 # import the necessary libraries
 import os
 import glob
+import copy
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
@@ -123,18 +124,16 @@ class CNN(nn.Module):
 
 
 # function for freezing layers in transfer learning models
-def freeze_until(model, layer_name):
+def freeze_layers(model, layer_name):
     """
     :param model: model for classification
-    :param layer_name: layer name-string
-    :return: stops the counting of the gradients besides the inputted layer
+    :param layer_name: layer names-strings in the list
+    :return: stops the counting of the gradients besides the inputted layers
     """
-    requires_grad = False
     for name, params in model.named_parameters():
-        if layer_name in name:
-            requires_grad = True
-
-        params.requires_grad = requires_grad
+        if name in layer_name:
+            params.requires_grad = True
+        params.requires_grad = False
 
 
 # function for model choosing
@@ -155,7 +154,7 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
         """
         chosen_model = models.resnet18(pretrained=use_pretrained)
         if freeze:
-            freeze_until(chosen_model, 'fc')
+            freeze_layers(chosen_model, ['fc'])
         num_ftrs = chosen_model.fc.in_features
         chosen_model.fc = nn.Linear(num_ftrs, num_classes)
         input_size = 224
@@ -165,7 +164,7 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
         """
         chosen_model = models.resnet34(pretrained=use_pretrained)
         if freeze:
-            freeze_until(chosen_model, 'fc')
+            freeze_layers(chosen_model, ['fc'])
         num_ftrs = chosen_model.fc.in_features
         chosen_model.fc = nn.Linear(num_ftrs, num_classes)
         input_size = 224
@@ -175,9 +174,9 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
         """
         chosen_model = models.alexnet(pretrained=use_pretrained)
         if freeze:
-            freeze_until(chosen_model, 'classifier[6]')
-        num_ftrs = chosen_model.classifier[6].in_features
-        chosen_model.classifier[6] = nn.Linear(num_ftrs, num_classes)
+            freeze_layers(chosen_model, ['classifier[4]', 'classifier[6]'])
+        chosen_model.classifier[4] = nn.Linear(4096, 1024)
+        chosen_model.classifier[6] = nn.Linear(1024, num_classes)
         input_size = 224
 
     elif model_name == 'cnn':
@@ -257,10 +256,11 @@ def get_num_correct(pred, label):
 
 
 # function for training and evaluating the image classification model
-def model_train(model, optimizer, loss_function, data_loader, system_device, train_cnt, test_cnt, num_epochs):
+def model_train(model, optimizer, scheduler, loss_function, data_loader, system_device, train_cnt, test_cnt, num_epochs):
     """
     :param model: CNN model
     :param optimizer: optimization algorithm
+    :param scheduler: scheduler for decaying learning rate
     :param loss_function: loss function from Pytorch nn library
     :param data_loader: transformed data loaders dictionary for train and test
     :param system_device: for checking device - cpu/gpu
@@ -275,6 +275,7 @@ def model_train(model, optimizer, loss_function, data_loader, system_device, tra
     test_loss = []
     train_acc_lst = []
     test_acc_lst = []
+    best_model_wts = copy.deepcopy(model.state_dict())
     best_accuracy = 0.0
 
     for epoch in tqdm(range(num_epochs), desc='Iterating through datasets..'):
@@ -322,6 +323,10 @@ def model_train(model, optimizer, loss_function, data_loader, system_device, tra
 
         if test_accuracy > best_accuracy:
             best_accuracy = test_accuracy
+            best_model_wts = copy.deepcopy(model.state_dict())  # copy the scheduler state
+
+        model.load_state_dict(best_model_wts)  # load the scheduler state
+        scheduler.step()  # decay learning rate
 
         if (epoch + 1) % 5 == 0:
             print(f'Epoch: {epoch + 1} -->  train min loss: {np.min(train_loss):.4f}, test min loss: {np.min(test_loss):.4f}')
@@ -331,9 +336,7 @@ def model_train(model, optimizer, loss_function, data_loader, system_device, tra
 
         # check if the test accuracy and loss doesn't change in valuable amount, break the iterations
         if len(test_acc_lst) > 10:
-            if best_accuracy not in test_acc_lst[-7:]:
-                break
-            elif abs(min(test_loss) - max(test_loss)) < 0.001:
+            if best_accuracy not in test_acc_lst[-10:]:
                 break
 
     print(f'Train best accuracy: {np.max(train_acc_lst):.3f}')
