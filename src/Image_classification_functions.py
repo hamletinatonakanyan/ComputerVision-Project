@@ -124,16 +124,18 @@ class CNN(nn.Module):
 
 
 # function for freezing layers in transfer learning models
-def freeze_layers(model, layer_name):
+def freeze_until(model, layer_name):
     """
     :param model: model for classification
-    :param layer_name: layer names-strings in the list
+    :param layer_name: name of the layer which will be frozen
     :return: stops the counting of the gradients besides the inputted layers
     """
+    requires_grad = False
     for name, params in model.named_parameters():
-        if name in layer_name:
-            params.requires_grad = True
-        params.requires_grad = False
+        if layer_name in name:
+            requires_grad = True
+
+        params.requires_grad = requires_grad
 
 
 # function for model choosing
@@ -150,38 +152,37 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
     input_size = 0
 
     if model_name == "resnet18":
-        """ Resnet18
-        """
+        """ Resnet18 """
+
         chosen_model = models.resnet18(pretrained=use_pretrained)
         if freeze:
-            freeze_layers(chosen_model, ['fc'])
+            freeze_until(chosen_model, 'layer4')
         num_ftrs = chosen_model.fc.in_features
         chosen_model.fc = nn.Linear(num_ftrs, num_classes)
         input_size = 224
 
     elif model_name == "resnet34":
-        """ Resnet34
-        """
+        """ Resnet34 """
+
         chosen_model = models.resnet34(pretrained=use_pretrained)
         if freeze:
-            freeze_layers(chosen_model, ['fc'])
+            freeze_until(chosen_model, 'layer4')
         num_ftrs = chosen_model.fc.in_features
         chosen_model.fc = nn.Linear(num_ftrs, num_classes)
         input_size = 224
 
     elif model_name == "alexnet":
-        """ Alexnet
-        """
+        """ AlexNet """
+
         chosen_model = models.alexnet(pretrained=use_pretrained)
         if freeze:
-            freeze_layers(chosen_model, ['classifier[4]', 'classifier[6]'])
+            freeze_until(chosen_model, 'classifier')
         chosen_model.classifier[4] = nn.Linear(4096, 1024)
         chosen_model.classifier[6] = nn.Linear(1024, num_classes)
         input_size = 224
 
     elif model_name == 'cnn':
-        """ Implemented CNN
-        """
+        """ Implemented CNN """
         chosen_model = CNN(num_classes)
         input_size = (448, 448)
     else:
@@ -249,8 +250,8 @@ def batch_show(data_loader, train_test='train'):
 # function for calculating amount of correct answers
 def get_num_correct(pred, label):
     """
-       params: prediction values, labels
-       returns: amount of correct predicted values
+    params: prediction values, labels
+    returns: amount of correct predicted values
     """
     return pred.argmax(dim=1).eq(label).sum().item()
 
@@ -323,9 +324,7 @@ def model_train(model, optimizer, scheduler, loss_function, data_loader, system_
 
         if test_accuracy > best_accuracy:
             best_accuracy = test_accuracy
-            best_model_wts = copy.deepcopy(model.state_dict())  # copy the scheduler state
 
-        model.load_state_dict(best_model_wts)  # load the scheduler state
         scheduler.step()  # decay learning rate
 
         if (epoch + 1) % 5 == 0:
