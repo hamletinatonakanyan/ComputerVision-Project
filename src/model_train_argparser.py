@@ -5,6 +5,7 @@ import Image_classification_train as clf_nn
 
 
 def main_function():
+
     parser = argparse.ArgumentParser(description='CNN classification model')
 
     parser.add_argument('-m', '--model',
@@ -26,6 +27,10 @@ def main_function():
                         metavar='', required=True,
                         help='Number of epochs for iterating the model.')
 
+    parser.add_argument('-dp', '--data_path',
+                        metavar='', required=True,
+                        help='Data folder path with train and test sub-folders')
+
     parser.add_argument('-p', '--model_pretrained', type=bool,
                         default=True,
                         metavar='', required=True,
@@ -38,7 +43,8 @@ def main_function():
 
     args = parser.parse_args()
     result = clf_nn.training_process(args.model, args.optimization, args.learning_rate,
-                                     args.epochs_number, args.model_pretrained, args.freeze_layers)
+                                     args.epochs_number, args.data_path,
+                                     args.model_pretrained, args.freeze_layers)
 
     return result
 
