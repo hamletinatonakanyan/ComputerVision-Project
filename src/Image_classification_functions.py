@@ -276,7 +276,6 @@ def model_train(model, optimizer, scheduler, loss_function, data_loader, system_
     test_loss = []
     train_acc_lst = []
     test_acc_lst = []
-    best_model_wts = copy.deepcopy(model.state_dict())
     best_accuracy = 0.0
 
     for epoch in tqdm(range(num_epochs), desc='Iterating through datasets..'):
