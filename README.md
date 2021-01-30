@@ -51,5 +51,8 @@ Data file system should be in the following hierarchy:
    
    d) "model_train_argparser.py" --> make ArgumentParser and pass parameters for training as arguments.
    
+   e) "Image_prediction.py" --> implementation of training process on unseen data
+   
+   f) "model_prediction_argparser.py" --> ArgumentParser file for the prediction process
 
    
