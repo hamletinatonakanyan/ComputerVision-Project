@@ -17,7 +17,7 @@ def main_func():
                              metavar='', required=True,
                              help='Data folder path of the images for prediction process')
 
-    pred_parser.add_argument('-psm', '--path_saved_model',
+    pred_parser.add_argument('-psm', '--path_saved_model_file',
                              metavar='', required=True,
                              help='File path of the saved model state through torch.save')
 
@@ -32,7 +32,8 @@ def main_func():
                              help='Freeze model\'s layers: True/False. Choose the same as while train process.')
 
     p_args = pred_parser.parse_args()
-    pred_result = clf_pred.prediction_process(p_args.model_name, p_args.data_folder_path, p_args.path_saved_model,
+    pred_result = clf_pred.prediction_process(p_args.model_name, p_args.data_folder_path,
+                                              p_args.path_saved_model_file,
                                               p_args.model_pretrained, p_args.freeze_layers)
 
     return pred_result
