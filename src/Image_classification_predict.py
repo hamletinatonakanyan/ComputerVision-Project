@@ -92,8 +92,11 @@ def prediction_process(name_of_model, folder_path, saved_model_path,
     # get transformed data loader
     dataloader = get_dataloader(folder_path, input_size)
 
+    # set path for saving model,
+    saved_model_file_path = f'{saved_model_path}/model_checkpoints.pth'
+
     # get the state of the saved model
-    prediction_model = load_checkpoint(saved_model_path, clf_model)
+    prediction_model = load_checkpoint(saved_model_file_path, clf_model)
 
     # get the prediction accuracy
     pred_accuracy = get_accuracy(dataloader, prediction_model, dataset_length, device)
