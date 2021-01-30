@@ -31,6 +31,15 @@ def main_function():
                         metavar='', required=True,
                         help='Data folder path with train and test sub-folders')
 
+    parser.add_argument('-smp', '--saving_model_path',
+                        metavar='', required=True,
+                        help='File path for saving the model and optimizer state through torch.save')
+
+    parser.add_argument('-lsm', '--load_saved_model', type=bool,
+                        default=False,
+                        metavar='', required=True,
+                        help='Load saved model and optimizer states: True/False.')
+
     parser.add_argument('-p', '--model_pretrained', type=bool,
                         default=True,
                         metavar='', required=True,
@@ -43,8 +52,8 @@ def main_function():
 
     args = parser.parse_args()
     result = clf_nn.training_process(args.model, args.optimization, args.learning_rate,
-                                     args.epochs_number, args.data_path,
-                                     args.model_pretrained, args.freeze_layers)
+                                     args.epochs_number, args.data_path, args.saving_model_path,
+                                     args.load_saved_model, args.model_pretrained, args.freeze_layers)
 
     return result
 

@@ -3,13 +3,10 @@
 # import the necessary libraries
 import os
 import glob
-import copy
 from tqdm import tqdm
 import numpy as np
-import pandas as pd
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from torchvision import models
 import torch.nn.functional as F
 import torchvision
@@ -19,20 +16,17 @@ from torchvision.datasets import ImageFolder
 from torch.autograd import Variable
 from PIL import Image
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 
 # calculating the amount of training and testing datasets
-def get_count_datasets(train_path, test_path):
+def get_dataset_length(folder_path):
     """
-    :param train_path: train folder path
-    :param test_path: test folder path
-    :return: amount of samples of train and test datasets
+    :param folder_path: train folder path
+    :return: amount of samples of dataset
     """
-    train_cnt = len(glob.glob(f'{train_path}/**/*.jpg'))
-    test_cnt = len(glob.glob(f'{test_path}/**/*.jpg'))
+    dataset_cnt = len(glob.glob(f'{folder_path}/**/*.jpg'))
 
-    return train_cnt, test_cnt
+    return dataset_cnt
 
 
 # get names and number of output classes
@@ -95,7 +89,6 @@ class CNN(nn.Module):
         # Linear layers
         # after filters and max pooling input shape will be (3, 96, 12, 12)
         self.fc1 = nn.Linear(in_features=96 * 12 * 12, out_features=1024)
-        self.bn3 = nn.BatchNorm1d(1024)
         self.out = nn.Linear(in_features=1024, out_features=self.num_classes)
 
     def forward(self, t):
@@ -116,7 +109,7 @@ class CNN(nn.Module):
         t = F.relu(self.conv5(t))
         t = F.max_pool2d(t, kernel_size=2, stride=2)
 
-        t = F.relu(self.bn3(self.fc1(t.reshape(-1, 96 * 12 * 12))))
+        t = F.relu(self.fc1(t.reshape(-1, 96 * 12 * 12)))
         t = F.dropout2d(t, p=0.1)
         t = self.out(t)
 
@@ -159,7 +152,7 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
             freeze_until(chosen_model, 'layer4')
         num_ftrs = chosen_model.fc.in_features
         chosen_model.fc = nn.Linear(num_ftrs, num_classes)
-        input_size = 224
+        input_size = (224, 224)
 
     elif model_name == "resnet34":
         """ Resnet34 """
@@ -169,7 +162,7 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
             freeze_until(chosen_model, 'layer4')
         num_ftrs = chosen_model.fc.in_features
         chosen_model.fc = nn.Linear(num_ftrs, num_classes)
-        input_size = 224
+        input_size = (224, 224)
 
     elif model_name == "alexnet":
         """ AlexNet """
@@ -179,7 +172,7 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
             freeze_until(chosen_model, 'classifier')
         chosen_model.classifier[4] = nn.Linear(4096, 1024)
         chosen_model.classifier[6] = nn.Linear(1024, num_classes)
-        input_size = 224
+        input_size = (224, 224)
 
     elif model_name == 'cnn':
         """ Implemented CNN """
@@ -204,9 +197,9 @@ def get_transformed_dataloader(train_path, test_path, input_resize):
     chosen_transforms = {
         'train': transforms.Compose([
             transforms.Resize(input_resize),
-            transforms.RandomRotation(degrees=35),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomVerticalFlip(p=0.5),
+            transforms.RandomRotation(degrees=25),
+            transforms.RandomHorizontalFlip(p=0.2),
+            transforms.RandomVerticalFlip(p=0.2),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406],
                                  [0.229, 0.224, 0.225])
@@ -257,17 +250,18 @@ def get_num_correct(pred, label):
 
 
 # function for training and evaluating the image classification model
-def model_train(model, optimizer, scheduler, loss_function, data_loader, system_device, train_cnt, test_cnt, num_epochs):
+def model_train(model, optimizer, loss_function, data_loader, system_device,
+                train_cnt, test_cnt, checkpoint_path, num_epochs):
     """
     :param model: CNN model
     :param optimizer: optimization algorithm
-    :param scheduler: scheduler for decaying learning rate
     :param loss_function: loss function from Pytorch nn library
     :param data_loader: transformed data loaders dictionary for train and test
     :param system_device: for checking device - cpu/gpu
     :param num_epochs: number of iterations
     :param train_cnt: count of samples of train dataset
     :param test_cnt: count of samples of test dataset
+    :param checkpoint_path: path for saving trained model with torch.save
     :return: lists or train loss, test loss, train accuracy, test accuracy
     """
 
@@ -277,11 +271,16 @@ def model_train(model, optimizer, scheduler, loss_function, data_loader, system_
     train_acc_lst = []
     test_acc_lst = []
     best_accuracy = 0.0
+    best_epoch = 0
 
     for epoch in tqdm(range(num_epochs), desc='Iterating through datasets..'):
 
         train_corrects = 0
         test_corrects = 0
+
+        # set checkpoint for saving model and optimizer
+        checkpoint = {'model_state': model.state_dict(),
+                      'optimizer_state': optimizer.state_dict()}
 
         # Evaluation on training dataset
         for batch in data_loader['train']:  # get batch
@@ -321,24 +320,28 @@ def model_train(model, optimizer, scheduler, loss_function, data_loader, system_
         test_accuracy = (test_corrects / test_cnt) * 100
         test_acc_lst.append(test_accuracy)
 
+        # check the best accuracy and epoch, save the model and optimizer states
         if test_accuracy > best_accuracy:
             best_accuracy = test_accuracy
-
-        scheduler.step()  # decay learning rate
+            best_epoch = epoch
+            torch.save(checkpoint, checkpoint_path)  # save the checkpoint dictionary
 
         if (epoch + 1) % 5 == 0:
-            print(f'Epoch: {epoch + 1} -->  train min loss: {np.min(train_loss):.4f}, test min loss: {np.min(test_loss):.4f}')
-            print(f'train accuracy: {train_accuracy:.3f}%, test accuracy: {test_accuracy:.3f}%')
+            print(f'Epoch: {epoch + 1}')
+            print(f'train min loss: {np.min(train_loss):.4f}, test min loss: {np.min(test_loss):.4f}')
+            print(f'train accuracy: {train_accuracy:.2f}%, test accuracy: {test_accuracy:.2f}%')
             print(f'train correct answers: {train_corrects}, test correct answers: {test_corrects}')
+            print(f'Train best accuracy: {np.max(train_acc_lst):.2f}')
+            print(f'Test best accuracy: {np.max(test_acc_lst):.2f}')
+            print(f'Best epoch-accuracy: {best_epoch}')
             print('-' * 10)
 
         # check if the test accuracy and loss doesn't change in valuable amount, break the iterations
         if len(test_acc_lst) > 10:
             if best_accuracy not in test_acc_lst[-10:]:
                 break
-
-    print(f'Train best accuracy: {np.max(train_acc_lst):.3f}')
-    print(f'Test best accuracy: {np.max(test_acc_lst):.3f}')
+            if abs(min(test_loss) - max(test_loss)) < 0.001:
+                break
 
     return train_loss, test_loss, train_acc_lst, test_acc_lst
 
