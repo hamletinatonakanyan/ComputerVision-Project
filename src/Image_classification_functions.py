@@ -169,7 +169,7 @@ def initialize_model(model_name, num_classes, use_pretrained=True, freeze=False)
 
         chosen_model = models.alexnet(pretrained=use_pretrained)
         if freeze:
-            freeze_until(chosen_model, 'classifier')
+            freeze_until(chosen_model, 'classifier[6]')
         chosen_model.classifier[4] = nn.Linear(4096, 1024)
         chosen_model.classifier[6] = nn.Linear(1024, num_classes)
         input_size = (224, 224)

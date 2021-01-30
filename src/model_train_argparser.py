@@ -33,9 +33,13 @@ def main_function():
 
     parser.add_argument('-smp', '--saving_model_path',
                         metavar='', required=True,
-                        help='File path for saving the model and optimizer state through torch.save')
+                        help='File path for saving the model and optimizer states through torch.save')
 
-    parser.add_argument('-lsm', '--load_saved_model', type=bool,
+    parser.add_argument('-smf', '--saving_model_file_name',
+                        metavar='', required=True,
+                        help='File name with extension for saving the model and optimizer states through torch.save')
+
+    parser.add_argument('-sml', '--saved_model_load', type=bool,
                         default=False,
                         metavar='', required=True,
                         help='Load saved model and optimizer states: True/False.')
@@ -52,8 +56,9 @@ def main_function():
 
     args = parser.parse_args()
     result = clf_nn.training_process(args.model, args.optimization, args.learning_rate,
-                                     args.epochs_number, args.data_path, args.saving_model_path,
-                                     args.load_saved_model, args.model_pretrained, args.freeze_layers)
+                                     args.epochs_number, args.data_path,
+                                     args.saving_model_path, args.saving_model_file_name,
+                                     args.saved_model_load, args.model_pretrained, args.freeze_layers)
 
     return result
 

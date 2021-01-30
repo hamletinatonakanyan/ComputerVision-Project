@@ -1,7 +1,7 @@
 # argument parser file for the prediction process
 
 import argparse
-import Image_classification_predict as clf_pred
+import Image_prediction as img_pred
 
 
 def main_func():
@@ -21,6 +21,10 @@ def main_func():
                              metavar='', required=True,
                              help='File path of the saved model state through torch.save')
 
+    pred_parser.add_argument('-nsm', '--name_saved_model_file',
+                             metavar='', required=True,
+                             help='File name with extension of the saved model\'s state through torch.save')
+
     pred_parser.add_argument('-mp', '--model_pretrained', type=bool,
                              default=True,
                              metavar='', required=True,
@@ -32,8 +36,8 @@ def main_func():
                              help='Freeze model\'s layers: True/False. Choose the same as while train process.')
 
     p_args = pred_parser.parse_args()
-    pred_result = clf_pred.prediction_process(p_args.model_name, p_args.data_folder_path,
-                                              p_args.path_saved_model_file,
+    pred_result = img_pred.prediction_process(p_args.model_name, p_args.data_folder_path,
+                                              p_args.path_saved_model_file, p_args.name_saved_model_file,
                                               p_args.model_pretrained, p_args.freeze_layers)
 
     return pred_result

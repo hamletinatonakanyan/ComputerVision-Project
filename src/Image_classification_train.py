@@ -13,7 +13,8 @@ import Image_classification_functions as clf
 
 # function for implementation  training process using all training created functions
 def training_process(name_of_model, optimization, learning_rate, epochs_number, data_path,
-                     path_saving_model, load_saved_model=False, pretrained=True, freeze_layers=False):
+                     path_saving_model, file_name_saving_model, load_saved_model=False,
+                     pretrained=True, freeze_layers=False):
 
     # check the versions
     print(f'torch version: {torch.__version__}')
@@ -59,7 +60,7 @@ def training_process(name_of_model, optimization, learning_rate, epochs_number, 
     criterion = nn.CrossEntropyLoss()
 
     # set path for saving model,
-    saved_model_path = f'{path_saving_model}/model_checkpoints.pth'
+    saved_model_path = f'{path_saving_model}/{file_name_saving_model}'
 
     # load saved model if parameter set True(if the training process was interrupted and there is need to continue)
     if load_saved_model:

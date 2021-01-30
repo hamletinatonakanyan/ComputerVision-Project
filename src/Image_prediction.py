@@ -73,7 +73,7 @@ def get_accuracy(transformed_dataloader, model, count_dataset, system_device):
 
 
 # Implementation of the prediction process
-def prediction_process(name_of_model, folder_path, saved_model_path,
+def prediction_process(name_of_model, folder_path, saved_model_path, saved_model_file,
                        model_pretrained=True, freeze_model_layers=False):
 
     # check the device
@@ -93,7 +93,7 @@ def prediction_process(name_of_model, folder_path, saved_model_path,
     dataloader = get_dataloader(folder_path, input_size)
 
     # set path for saving model,
-    saved_model_file_path = f'{saved_model_path}/model_checkpoints.pth'
+    saved_model_file_path = f'{saved_model_path}/{saved_model_file}'
 
     # get the state of the saved model
     prediction_model = load_checkpoint(saved_model_file_path, clf_model)
