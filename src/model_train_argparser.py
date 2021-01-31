@@ -39,10 +39,10 @@ def main_function():
                         metavar='', required=True,
                         help='File name with extension for saving the model and optimizer states through torch.save')
 
-    parser.add_argument('-sml', '--saved_model_load', type=bool,
-                        default=False,
+    parser.add_argument('-sml', '--saved_model_load',
+                        choices=('yes', 'no'),
                         metavar='', required=True,
-                        help='Load saved model and optimizer states: True/False.')
+                        help='Load saved model and optimizer states: yes/no.')
 
     parser.add_argument('-p', '--model_pretrained', type=bool,
                         default=True,

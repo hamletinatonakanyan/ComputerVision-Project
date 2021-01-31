@@ -63,7 +63,7 @@ def training_process(name_of_model, optimization, learning_rate, epochs_number, 
     saved_model_path = f'{path_saving_model}/{file_name_saving_model}'
 
     # load saved model if parameter set True(if the training process was interrupted and there is need to continue)
-    if load_saved_model:
+    if load_saved_model == 'yes':
         checkpoint = torch.load(saved_model_path)
         clf_model.load_state_dict(checkpoint['model_state'])
         optimization.load_state_dict(checkpoint['optimizer_state'])
