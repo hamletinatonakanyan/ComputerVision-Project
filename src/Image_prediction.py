@@ -104,7 +104,7 @@ def prediction_process(name_of_model, folder_path, saved_model_path, saved_model
     print(f'Prediction accuracy: {pred_accuracy:.2f}%')
 
     # get Confusion Matrix for predictions
-    predictions, labels = clf.get_all_preds_labels(prediction_model, dataloader)
+    predictions, labels = clf.get_all_preds_labels(prediction_model, dataloader, device)
     preds_conf_matx = clf.get_cmt(labels, predictions, classes_amount)
     clf.plot_confusion_matrix(preds_conf_matx, classes, title='CNN prediction dataset Confusion Matrix')
 
