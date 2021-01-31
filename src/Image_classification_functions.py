@@ -327,10 +327,10 @@ def model_train(model, optimizer, loss_function, data_loader, system_device,
             torch.save(checkpoint, checkpoint_path)  # save the checkpoint dictionary
 
         if (epoch + 1) % 5 == 0:
-            print(f'Epoch: {epoch + 1}')
-            print(f'train min loss: {np.min(train_loss):.4f}, test min loss: {np.min(test_loss):.4f}')
-            print(f'train accuracy: {train_accuracy:.2f}%, test accuracy: {test_accuracy:.2f}%')
-            print(f'train correct answers: {train_corrects}, test correct answers: {test_corrects}')
+            print(f'\nEpoch: {epoch + 1}')
+            print(f'Train min loss: {np.min(train_loss):.4f}, test min loss: {np.min(test_loss):.4f}')
+            print(f'Train accuracy: {train_accuracy:.2f}%, test accuracy: {test_accuracy:.2f}%')
+            print(f'Train correct answers: {train_corrects}, test correct answers: {test_corrects}')
             print(f'Train best accuracy: {np.max(train_acc_lst):.2f}')
             print(f'Test best accuracy: {np.max(test_acc_lst):.2f}')
             print(f'Best epoch-accuracy: {best_epoch}')
